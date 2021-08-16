@@ -1,0 +1,195 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+Dashboard
+{% endblock %}
+
+{% block styles %}
+{{super()}}
+<script data-require="jquery@*" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script data-require="datatables@*" data-semver="1.10.12" src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+  <script src="dataTables.rowReorder.js"></script>
+  <link data-require="datatables@*" data-semver="1.10.12" rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="//cdn.datatables.net/rowreorder/1.2.0/css/rowReorder.dataTables.min.css" />
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src = "http://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js" defer ></script>
+  <link rel="stylesheet" href="{{url_for('.static', filename='dashboard.css')}}">
+{% endblock %}
+
+{% block content %}
+    <script>
+        function show_user(e){
+            console.log(e);
+        }
+    </script>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <div style="float: left;"><img src="{{url_for('.static', filename='logo.png')}}" height="50" width="50" /></div><a class="navbar-brand" href="#" style="font-weight: 600;float: left;">Design App<span style="color: chartreuse;">.</span></a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class="active"><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
+            {% if isdataowner == 1 %}
+            <li>
+                <a href="{{ url_for('edithistory') }}">Edit History</a>
+                <span class="notification-counter">5</span>
+              </li>
+            {% endif %}
+            <li><a href="#">Profile</a></li>
+            <li><a href="{{ url_for('logout') }}">Log Out</a></li>
+            <li><a href="#">{{name}}({{email}})</a></li>
+          </ul>
+          <form class="navbar-form navbar-right">
+            <input type="text" class="form-control" placeholder="Search app...">
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar">
+          <ul class="nav nav-sidebar">
+            <li class="active"><a href="#">Overview <span class="sr-only">(current)</span></a></li>
+            <li><span class="dropdown">&nbsp;
+              <a class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Master
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                <button class="dropdown-item" type="button"><a href="{{ url_for('dataowner') }}">DataOwner</a></button>
+                <button class="dropdown-item" type="button">RecordChange</button>
+                <button class="dropdown-item" type="button">DataClassification</button>
+                <button class="dropdown-item" type="button">SC Area</button>
+                <button class="dropdown-item" type="button">ReportingType</button>
+                <button class="dropdown-item" type="button">Complexity</button>
+              </div>
+            </span></li>
+            <li><span class="dropdown">&nbsp;
+              <a class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Templates
+              </a>
+              <div class="dropdown-menu" aria-labelledby="dropdownMenu2">
+                <button class="dropdown-item" type="button">Business DataLake Template</button>
+                <button class="dropdown-item" type="button">Product DataStore Template</button>
+                <button class="dropdown-item" type="button"><a href="{{ url_for('objectrelation') }}">Object Relationship Template</a></button>
+              </div>
+            </span></li>
+            <li><a href="#">Reports</a></li>
+            <li><a href="#">Analytics</a></li>
+            <li><a href="#">Export</a></li>
+          </ul>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+          <h1 class="page-header">Object Relation Information</h1>
+
+          <!-- <div class="row placeholders">
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <img src="static/master.png" width="200" height="200" class="img-rounded" alt="Generic placeholder thumbnail">
+              <h4>Master Database</h4>
+              <button class="btn btn-lg btn-success">Show Tables</button>
+            </div>
+            <div class="col-xs-6 col-sm-3 placeholder">
+              <img src="static/transactional.png" width="200" height="200" class="img-rounded" alt="Generic placeholder thumbnail">
+              <h4>Transactional Database</h4>
+              <button class="btn btn-lg btn-success">Show Tables</button>
+            </div>
+          </div> -->
+
+          <button class="btn btn-lg btn-success">Add Row</button>
+          <div class="table-responsive">
+            <table id="example" class="display" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>DimensionFACTLinkId</th>
+                  <th>RelationshipTypeLookup</th>
+                  <th>ParentObjectAttributeNameLookup</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+            </table>
+            <script>
+              $(document).ready(function() {
+          
+                var table;
+          
+                $("#example").on("mousedown", "td .fa.fa-minus-square", function(e) {
+                  table.row($(this).closest("tr")).remove().draw();
+                })
+          
+                $("#example").on('mousedown.edit', "i.fa.fa-pencil-square", function(e) {
+          
+                  $(this).removeClass().addClass("fa fa-envelope-o");
+                  var $row = $(this).closest("tr").off("mousedown");
+                  var $tds = $row.find("td").not(':first').not(':last');
+          
+                  $.each($tds, function(i, el) {
+                    var txt = $(this).text();
+                    $(this).html("").append("<input type='text' value=\""+txt+"\">");
+                  });
+          
+                });
+          
+                $("#example").on('mousedown', "input", function(e) {
+                  e.stopPropagation();
+                });
+          
+                $("#example").on('mousedown.save', "i.fa.fa-envelope-o", function(e) {
+                  
+                  $(this).removeClass().addClass("fa fa-pencil-square");
+                  var $row = $(this).closest("tr");
+                  var $tds = $row.find("td").not(':first').not(':last');
+                  
+                  $.each($tds, function(i, el) {
+                    var txt = $(this).find("input").val()
+                    $(this).html(txt);
+                  });
+                });
+                
+                
+                 $("#example").on('mousedown', "#selectbasic", function(e) {
+                  e.stopPropagation();
+                });
+                
+          
+                var url = 'http://www.json-generator.com/api/json/get/ccTtqmPbkO?indent=2';
+                table = $('#example').DataTable({
+                  ajax: url,
+                  rowReorder: {
+                    dataSrc: 'order',
+                    selector: 'tr'
+                  },
+                  columns: [{
+                    data: 'order'
+                  }, {
+                    data: 'place'
+                  }, {
+                    data: 'name'
+                  }, {
+                    data: 'delete'
+                  }]
+                });
+                
+                $('#example').css('border-bottom', 'none');
+              //$('<div class="addRow"><button id="addRow">Add New Row</button></div>').insertAfter('#example');
+          
+                // add row
+                $('#addRow').click(function() {
+                  //t.row.add( [1,2,3] ).draw();
+                  var rowHtml = $("#newRow").find("tr")[0].outerHTML
+                  console.log(rowHtml);
+                  table.row.add($(rowHtml)).draw();
+                });
+              });
+            </script>
+          </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}
